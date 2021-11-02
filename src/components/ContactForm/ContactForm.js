@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { addContact } from '../../redux/contacts/contacts-actions';
+import contactsActions from '../../redux/contacts/contacts-actions';
 
 import styles from './ContactForm.module.css';
 
@@ -12,14 +12,21 @@ class ContactForm extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
+    const { name } = this.state;
+    const { contacts } = this.props;
 
-    if (this.state.name && this.state.number !== '') {
-      const { name, number } = this.state;
-      this.props.onSubmit({ name, number });
-      this.resetForm();
+    if (!this.state.name || !this.state.number) {
+      alert('Enter the name!');
       return;
     }
-    alert('Please, check the field NAME and NUMBER is not empty');
+
+    if (contacts.find(item => item.name.toLowerCase() === name.toLowerCase())) {
+      alert(`${name} already exists. Try another name`);
+      return;
+    }
+
+    this.props.onSubmit(this.state);
+    this.resetForm();
   };
 
   handleInputChange = e => {
@@ -69,8 +76,12 @@ class ContactForm extends Component {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  onSubmit: contact => dispatch(addContact(contact)),
+const mapStateToProps = state => ({
+  contacts: state.contacts.items,
 });
 
-export default connect(null, mapDispatchToProps)(ContactForm);
+const mapDispatchToProps = dispatch => ({
+  onSubmit: contact => dispatch(contactsActions.addContact(contact)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ContactForm);
